@@ -4,6 +4,7 @@ from logging.handlers import RotatingFileHandler
 
 def setup_logger():
     logging.getLogger('discord').setLevel(logging.WARNING)
+    logging.getLogger('bot_util').setLevel(logging.NOTSET)
     logging.getLogger('cog').setLevel(logging.NOTSET)
     logging.getLogger('bot').setLevel(logging.NOTSET)
 
