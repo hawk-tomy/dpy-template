@@ -10,7 +10,7 @@ from discord.ext import commands
 from bot_util import dispander, Embed, help_command, split_line
 from bot_util.config import config, ConfigBase
 #from bot_util.sio_client import SioClient
-#if you need socket.up client, please enabled.
+#if you need socket.io client, please enabled.
 
 from cog import extension
 
