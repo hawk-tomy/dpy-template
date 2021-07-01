@@ -37,7 +37,7 @@ class CogTemplateClass(commands.cog):
         await ctx.send('this is subcommand')
 
     @commands.command(name='print')
-    async _print(self, ctx, *, args):
+    async def _print(self, ctx, *, args):
         await ctx.reply(args)
 
 
