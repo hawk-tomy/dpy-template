@@ -16,29 +16,29 @@ class CogTemplateClass(commands.cog):
 
         logger.info('load extention is success')
 
-    def cog_check(self, ctx):
+    async def cog_check(self, ctx):
         return True
 
+    async def cog_command_error(self, ctx, error):
+        return await ctx.re_error('不明なエラーが発生しました。')
+
     @commands.is_owner()
-    @commands.group(alies=['gc'])
+    @commands.group(invoke_without_command=True, aliases=['gc'])
     async def group_command(self, ctx):
         """group command template
         """
-        if ctx.invoked_subcommand is None:
-            self.bot.help_command.context = ctx
-            await self.bot.help_command.send_group_help(ctx.command)
-        pass
+        await ctx.send_help(ctx.command)
 
-    @commands.is_owner()
     @grouo_command.command()
     async def sub_command_template(self, ctx):
         """sub command template
         """
-        await ctx.send('this is subcommand')
+        await ctx.re_info('this is subcommand')
 
+    @commands.is_owner()
     @commands.command(name='print')
     async def _print(self, ctx, *, args):
-        await ctx.reply(args)
+        await ctx.re_info(args)
 
 
 def setup(bot):
