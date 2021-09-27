@@ -1,29 +1,16 @@
-from dataclasses import asdict, dataclass
-from logging import getLogger
 import traceback
-
+from logging import getLogger
+from os import getenv
 
 import discord
+import dispander
 from discord import AllowedMentions, Intents
 from discord.ext import commands
 
-from bot_util import dispander, Embed, help_command, split_line
-from bot_util.config import config, ConfigBase
-#from bot_util.sio_client import SioClient
-#if you need socket.io client, please enabled.
-
+from lib import Context, Help, split_line #sio_client
 from cog import extension
 
-
 __all__ = ('Bot',)
-
-
-@dataclass
-class Main(ConfigBase):
-    TOKEN: str= ''
-
-
-config.add_default_config(Main)
 
 
 logger = getLogger(__name__)
@@ -36,11 +23,11 @@ class Bot(commands.Bot):
         allowed_mentions = AllowedMentions(everyone=False, replied_user=False)
 
         super().__init__(
-            allowed_mentions= allowed_mentions,
-            command_prefix= '/',
-            description= 'This message is template. Please rewrite',
-            help_command= help_command.Help(),
-            intents= intents,
+            allowed_mentions=allowed_mentions,
+            command_prefix='/',
+            description='This message is template sentence. Please rewrite',
+            help_command=Help(),
+            intents=intents,
             )
 
         def log(ctx):
@@ -65,7 +52,10 @@ class Bot(commands.Bot):
         return self.__default_embed.copy()
 
     def run(self):
-        super().run(config.Main.TOKEN)
+        super().run(getenv('DISCORD_BOT_TOKEN'))
+
+    async def get_context(self, message):
+        return await super().get_context(message, cls=Context)
 
     async def on_ready(self):
         logger.info('login success')
@@ -83,44 +73,36 @@ class Bot(commands.Bot):
             return
         await self.process_commands(message)
 
-    async def on_command_error(self, ctx, error):
-        error = error if error.__context__ is None else error.__context__
-        if self.extra_events.get('on_command_error', None):
-            return
+    async def on_raw_reaction_add(self, payload):
+        await dispander.delete_dispand(self, payload=payload)
 
-        if hasattr(ctx.command, 'on_error'):
+    async def on_command_error(self, ctx: Context, exc: commands.CommandError):
+        if ctx.invoked_error:
             return
-
-        cog = ctx.cog
-        if cog and commands.Cog._get_overridden_method(cog.cog_command_error) is not None:
+        if isinstance(exc, commands.MissingRequiredArgument):
+            await ctx.re_error(f'`{exc.param.name}`は必須です。')
             return
-        err_msg = (
-            f'Ignoring exception in command {ctx.command}:\n'
-            f'{"".join(traceback.format_exception(type(error), error, error.__traceback__))}'
-            )
-        embed = self.default_embed
-        embed.title = 'traceback (command)'
-        for msg in split_line(err_msg, 1000):
-            embed.add_field(
-                name='traceback',
-                value=f'```py\n{msg}\n```',
-                inline=False,
-            )
-        logger.exception(err_msg)
-        await self.get_user(self.owner_id).send(embed=embed)
+        log_msg = f'Ignoring exception in command {ctx.command}:'
+        err_msg = f'{log_msg}\n{"".join(traceback.format_exception(type(exc), exc, exc.__traceback__))}'
+        logger.exception(log_msg, exc_info=exc)
+        if len(err_msg) < 5000:
+            embed = self.default_embed
+            embed.title = 'traceback (on_command_error)'
+            for msg in split_line(err_msg, 1000):
+                embed.add_field(name='traceback', value=f'```py\n{msg}\n```', inline=False)
+            await self.get_user(self.owner_id).send(embed=embed)
+        else:
+            await self.get_user(self.owner_id).send(file=File(fp=StringIO(err_msg), filename='tb_command_error.py'))
 
     async def on_error(self, event_method, *args, **kwargs):
-        err_msg = (
-            f'Ignoring exception in {event_method}\n'
-            f'{traceback.format_exc()}'
-            )
-        embed = self.default_embed
-        embed.title = 'traceback (any)'
-        for msg in split_line(err_msg, 1000):
-            embed.add_field(
-                name='traceback',
-                value= f'```py\n{msg}\n```',
-                inline=False,
-            )
-        logger.exception(err_msg)
-        await self.get_user(self.owner_id).send(embed=embed)
+        log_msg = f'Ignoring exception in {event_method}:'
+        err_msg = f'{log_msg}\n{traceback.format_exc()}'
+        logger.exception(log_msg)
+        if len(err_msg) < 5000:
+            embed = self.default_embed
+            embed.title = 'traceback (on_error)'
+            for msg in split_line(err_msg, 1000):
+                embed.add_field(name='traceback', value=f'```py\n{msg}\n```', inline=False)
+            await self.get_user(self.owner_id).send(embed=embed)
+        else:
+            await self.get_user(self.owner_id).send(file=File(fp=StringIO(err_msg), filename='tb_error.py'))
