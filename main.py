@@ -4,14 +4,13 @@ from logging.handlers import RotatingFileHandler
 
 def setup_logger():
     logging.getLogger('discord').setLevel(logging.WARNING)
-    logging.getLogger('bot_util').setLevel(logging.NOTSET)
     logging.getLogger('cog').setLevel(logging.NOTSET)
     logging.getLogger('bot').setLevel(logging.NOTSET)
 
     log = logging.getLogger()
     log.setLevel(logging.NOTSET)
     fh = RotatingFileHandler(
-        filename='log/potato_exec.log',
+        filename='log/bot.log',
         encoding='utf-8',
         mode='w',
         maxBytes=32 * 1024 * 1024,
