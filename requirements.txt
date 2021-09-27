@@ -1,4 +1,6 @@
-discord.py
-git+https://github.com/Rapptz/discord-ext-menus
+git+https://github.com/hawk-tomy/discord.py
+git+https://github.com/hawk-tomy/discord-ext-menus@dpy-v2a
+git+https://github.com/hawk-tomy/dispander@dpy2
+jishaku
+pytest
 pyyaml
-git+https://github.com/hawk-tomy/bot_util
