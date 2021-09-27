@@ -1,11 +1,14 @@
 import logging
 from logging.handlers import RotatingFileHandler
+import os
 
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 def setup_logger():
     logging.getLogger('discord').setLevel(logging.WARNING)
-    logging.getLogger('cog').setLevel(logging.NOTSET)
     logging.getLogger('bot').setLevel(logging.NOTSET)
+    logging.getLogger('cog').setLevel(logging.NOTSET)
+    logging.getLogger('lib').setLevel(logging.NOTSET)
 
     log = logging.getLogger()
     log.setLevel(logging.NOTSET)
