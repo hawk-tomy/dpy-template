@@ -1,20 +1,10 @@
-from dataclasses import dataclass, field
-import pathlib
+__all__ = ('extension',)
 
-
-from bot_util.config import config, ConfigBase
-#from bot_util.data import data, DataBase
-
-
-extension = tuple(
-     f'{__name__}.{p.stem}' for p 
-             in pathlib.Path(__file__).parents[0].itredir()
-                 if not p.stem.startswith('__')
+my_extension = tuple(
+     f'{__name__}.{name}' for name in
+         'cog_template',
 )
-
-
-@dataclass
-class EmbedSetting(ConfigBase):
-    color: int= 0x54c3f1
-
-config.add_default_config(EmbedSetting, key='embed_setting')
+addtional_extension = (
+    'jishaku',
+)
+extension = my_extension + addtional_extension
